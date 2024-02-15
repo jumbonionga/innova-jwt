@@ -2,6 +2,7 @@
 Proyecto para implementación de JWT
 
 ## Procedimiento
+### Preparación
 1. Se crea en Spring Boot Initializer un proyecto con las siguientes dependencias:
    1. Spring Web
    2. Spring Security
@@ -68,4 +69,56 @@ Proyecto para implementación de JWT
    - (Opcional) Dentro del paquete `application`, crear un subpaquete llamado `lasting` para las constantes.
       - Si se va a usar un Enum, es recomendable usar la anotación `@Enumerated(EnumType.STRING)`
    - `exception` para las excepciones
-8. 
+### Implementación
+1. A la clase `User` se le obliga a implementar `UserDetails`.
+   - Hay que modificar el método `getAuthorities()` como sigue:
+   ```java
+   import org.springframework.security.core.authority.SimpleGrantedAuthority;    
+   return List.of(new SimpleGrantedAuthority(this.role.name()));
+   ```
+   - Si no se está usando un _username_ en la Entidad, se debe cambiar el método `getUsername()` para que retorne el 
+   campo que se está usando como identificador. Por ejemplo:
+   ```java
+   @Override
+   public String getUsername() {
+     return this.email;
+   }
+   ```
+   - Para la _contraseña_, y si se está usando *Lombok*, se puede sobreescribir el método `getPassword()` para volverlo
+   explícito:
+   ```java
+   @Override
+   public String getPassword() {
+     return this.password;
+   }
+   ```
+   - Para el método `isAccountNonExpired()` se retorna `true`
+   ```java
+   public boolean isAccountNonExpired() {
+     return true;
+   }
+   ```
+   - Para el método `isAccountNonLocked()` se retorna `true`
+   ```java
+   public boolean isAccountNonLocked() {
+     return true;
+   }
+   ```
+   - Para el método `isCredentialsNonExpired()` se retorna `true`
+   ```java
+   public boolean isCredentialsNonExpired() {
+     return true;
+   }
+   ```
+   - Para el método `isEnabled()` se retorna el elemento `enable`
+   ```java
+   public boolean isEnabled() {
+     return this.enable;
+   }
+   ```
+   - Estos métodos se pueden ir cambiando con lógicas y requisitos de negocio necearias.
+   - Como recordatorio, todos los métodos que usan un `this` son elementos que se reciben de la DB.
+2. Se crea el filtro de seguridad para evaluar cada petición que llega.
+   - Dentro del paquete de `application` se crea un subpaquete, que puede llamarse `config`. Dentro se debe crear una 
+     clase llamada `JwtFilter`. 
+   
